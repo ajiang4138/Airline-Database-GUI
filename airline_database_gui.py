@@ -37,14 +37,7 @@ desc_label.pack(pady=10)
 
 def test_connection():
     try:
-        connection = pymysql.connect (
-            host = "localhost",
-            port = 3306,
-            user = "root",
-            password = "2414510759/Aa",
-            database = "flight_tracking"
-        )
-        
+        connection = connect()
         connection.close()
         messagebox.showinfo("Connection Status", "Successfully connected to MySQL!")
     
@@ -56,7 +49,7 @@ def connect():
             host = "localhost",
             port = 3306,
             user = "root",
-            password = "2414510759/Aa",
+            password = "*****", #insert your password here! Make sure to remove password when committing
             database = "flight_tracking"
         )
 
