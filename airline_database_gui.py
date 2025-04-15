@@ -14,8 +14,10 @@ root.configure(bg="#f0f0f0")
 welcome_frame = tk.Frame(root, bg="#f0f0f0")
 welcome_frame.pack(expand=True, fill="both")
 
-# Procedures dashboard
+# Additional frames
 dashboard_frame = None
+form_frame = None
+category_frame = None
 
 title_label = tk.Label(
     welcome_frame,
@@ -49,7 +51,7 @@ def connect():
             host = "localhost",
             port = 3306,
             user = "root",
-            password = "*****", #insert your password here! Make sure to remove password when committing
+            password = "2414510759/Aa", #insert your password here! Make sure to remove password when committing
             database = "flight_tracking"
         )
 
@@ -85,11 +87,11 @@ def go_to_dashboard():
     button_frame.pack(pady=20)
     
     procedures = {
-        "add_airplane" : add_airplane_page
+        "add_airplane" : add_airplane_page,
+        "add_airport" : add_airport_page
     }
     
     incomplete = [
-        "add_airport", 
         "add_person", 
         "grant_or_revoke_pilot_license", 
         "offer_flight", "flight_landing", 
@@ -109,16 +111,205 @@ def go_to_dashboard():
             command=func
         ).grid(row=idx // 2, column=idx % 2, padx=10, pady=5)
 
+
+# add_airplane() setup
 def add_airplane_page():
     global dashboard_frame
+    global category_frame
     dashboard_frame.pack_forget()
     
-    form_frame = tk.Frame(root, bg="#e6ffe6")
+    category_frame = tk.Frame(root, bg="#e6ffe6")
+    category_frame.pack(expand=True, fill="both")
+
+    tk.Label(
+        category_frame,
+        text="Select Airplane Type",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    tk.Button(
+        category_frame,
+        text="Add Boeing",
+        width=30,
+        command=lambda: [category_frame.pack_forget(), add_airplane_form(category_frame, "boeing")]
+    ).pack(pady=10)
+
+    tk.Button(
+        category_frame,
+        text="Add Airbus",
+        width=30,
+        command=lambda: [category_frame.pack_forget(), add_airplane_form(category_frame, "airbus")]
+    ).pack(pady=10)
+
+    tk.Button(
+        category_frame,
+        text="Add General",
+        width=30,
+        command=lambda: [category_frame.pack_forget(), add_airplane_form(category_frame, "general")]
+    ).pack(pady=10)
+
+    tk.Button(
+        category_frame,
+        text="Back",
+        command=lambda: [category_frame.pack_forget(), dashboard_frame.pack(expand=True, fill="both")]
+    ).pack(pady=20)
+
+def add_airplane_form(prev_frame, plane_type):
+    global form_frame
+    form_frame = tk.Frame(root, bg="#dff0ff")
     form_frame.pack(expand=True, fill="both")
 
-    tk.Label(form_frame, text="Add Airplane", font=("Helvetica", 20, "bold"), bg="#e6ffe6").pack(pady=20)
+    if plane_type == "boeing":
+        tk.Label(form_frame, text="Add Boeing Airplane", font=("Helvetica", 20, "bold"), bg="#dff0ff").pack(pady=20)
 
-    labels = ["Airplane ID", "Model", "Capacity"]
+        labels = ["Airline ID", "Tail Number", "Seat Capacity", "Speed", "Location ID", "Maintenanced", "Model"]
+        entries = []
+
+        for label in labels:
+            
+            frame = tk.Frame(form_frame, bg="#dff0ff")
+            frame.pack(pady=5)
+            tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+            
+            if label == "Maintenanced":
+                neo_var = tk.StringVar(value="True")
+                dropdown = tk.OptionMenu(frame, neo_var, "True", "False")
+                dropdown.config(width=23)
+                dropdown.pack(side='left')
+                entries.append(neo_var)
+            else:
+                entry = tk.Entry(frame, width=30)
+                entry.pack(side='left')
+                entries.append(entry)
+
+        def submit():
+            airline_id, tail_num, capacity, speed, location_id, maintenanced, model = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("add_airplane", (airline_id, tail_num, int(capacity), int(speed), location_id, "Boeing", maintenanced, model, None))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Boeing airplane added successfully.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to add Boeing airplane:\n{e}")
+                
+            finally:
+                conn.close()
+    
+    if plane_type == "airbus":
+        tk.Label(form_frame, text="Add Airbus Airplane", font=("Helvetica", 20, "bold"), bg="#dff0ff").pack(pady=20)
+
+        labels = ["Airline ID", "Tail Number", "Seat Capacity", "Speed", "Location ID", "Neo"]
+        entries = []
+
+        for label in labels:
+            
+            frame = tk.Frame(form_frame, bg="#dff0ff")
+            frame.pack(pady=5)
+            tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+            
+            if label == "Neo":
+                neo_var = tk.StringVar(value="True")
+                dropdown = tk.OptionMenu(frame, neo_var, "True", "False")
+                dropdown.config(width=23)
+                dropdown.pack(side='left')
+                entries.append(neo_var)
+            else:
+                entry = tk.Entry(frame, width=30)
+                entry.pack(side='left')
+                entries.append(entry)
+
+        def submit():
+            airline_id, tail_num, capacity, speed, location_id, neo = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("add_airplane", (airline_id, tail_num, int(capacity), int(speed), location_id, "Airbus", None, None, bool(neo)))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Airbus airplane added successfully.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to add Airbus airplane:\n{e}")
+                
+            finally:
+                conn.close()
+    
+    if plane_type == "general":
+        tk.Label(form_frame, text="Add General Airplane", font=("Helvetica", 20, "bold"), bg="#dff0ff").pack(pady=20)
+
+        labels = ["Airline ID", "Tail Number", "Seat Capacity", "Speed", "Location ID"]
+        entries = []
+
+        for label in labels:
+            
+            frame = tk.Frame(form_frame, bg="#dff0ff")
+            frame.pack(pady=5)
+            tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+            
+            if label == "Neo":
+                neo_var = tk.StringVar(value="True")
+                dropdown = tk.OptionMenu(frame, neo_var, "True", "False")
+                dropdown.config(width=23)
+                dropdown.pack(side='left')
+                entries.append(neo_var)
+            else:
+                entry = tk.Entry(frame, width=30)
+                entry.pack(side='left')
+                entries.append(entry)
+
+        def submit():
+            airline_id, tail_num, capacity, speed, location_id, neo = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("add_airplane", (airline_id, tail_num, int(capacity), int(speed), location_id, None, None, None, None))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "General airplane added successfully.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to add General airplane:\n{e}")
+                
+            finally:
+                conn.close()
+
+    tk.Button(form_frame, text="Submit", command=submit).pack(pady=10)
+
+    tk.Button(
+        form_frame,
+        text="Back",
+        command=lambda: [form_frame.pack_forget(), add_airplane_page()]
+    ).pack(pady=10)
+    
+def add_airport_page():
+    global dashboard_frame
+    global category_frame
+    dashboard_frame.pack_forget()
+    
+    category_frame = tk.Frame(root, bg="#e6ffe6")
+    category_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        category_frame,
+        text="Add Airport",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+
+    labels = ["Airport ID", "Airport Name", "City", "State", "Country", "Location ID"]
     entries = []
 
     for label in labels:
@@ -128,7 +319,28 @@ def add_airplane_page():
         entry = tk.Entry(frame, width=30)
         entry.pack(side='left')
         entries.append(entry)
+
+    def submit():
+        airport_id, airport_name, city, state, country, location_id = [e.get() for e in entries]
+            
+        try:
+            conn = connect()
+                
+            with conn.cursor() as cursor:
+                cursor.callproc("add_airport", (airport_id, airport_name, city, state, location_id))
+                    
+            conn.commit()
+                
+            messagebox.showinfo("Success", "Airport added successfully.")
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to add airport:\n{e}")
+                
+        finally:
+            conn.close()
     
+    
+
 def clean_exit():
     root.destroy()
 
