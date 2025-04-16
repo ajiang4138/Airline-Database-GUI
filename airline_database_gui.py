@@ -78,14 +78,14 @@ def go_to_dashboard():
     # Labels
     tk.Label(
         dashboard_frame,
-        text="Stored Procedure Dashboard",
+        text="Procedures Dashboard",
         font=("Helvetica", 20, "bold"),
         bg="#e6f2ff"
     ).grid(row=0, column=0, pady=20)
     
-    tk.Label(button_frame, text="Add / License", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=0, pady=(0, 10))
+    tk.Label(button_frame, text="Add / Remove", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=0, pady=(0, 10))
     tk.Label(button_frame, text="Flight Operations", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=1, pady=(0, 10))
-    tk.Label(button_frame, text="Other Procedures", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=2, pady=(0, 10))
+    tk.Label(button_frame, text="People Operations", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=2, pady=(0, 10))
 
     # Buttons
     
@@ -99,15 +99,15 @@ def go_to_dashboard():
     flight_ops = {
         "Offer Flight": offer_flight_page,
         "Flight Landing": flight_landing_page,
-        "Flight Takeoff": flight_takeoff_page
+        "Flight Takeoff": flight_takeoff_page,
+        "Retire Flight": retire_flight_page
     }
     
     other_procedures = {
         "Assign Pilot": assign_pilot_page,
         "Passengers Board": passengers_board_page,
         "Passengers Disembark": passengers_disembark_page,
-        "Recycle Crew": recycle_crew_page,
-        "Retire Flight": retire_flight_page
+        "Recycle Crew": recycle_crew_page
     }
     
     def populate_column(procs, col):
