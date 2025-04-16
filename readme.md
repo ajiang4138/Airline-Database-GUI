@@ -17,5 +17,6 @@ OR
 - brew install mypysql
 
 # Notes
+- Make sure to change the connection method to your database, otherwise it will not work.
 - Color palettes appear to be different between Windows and Mac
     - Keep this in mind when adding and changing colors.

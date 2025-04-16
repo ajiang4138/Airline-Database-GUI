@@ -1,4 +1,5 @@
 import tkinter as tk
+from datetime import *
 from tkinter import messagebox
 
 import pymysql
@@ -14,10 +15,12 @@ root.configure(bg="#f0f0f0")
 welcome_frame = tk.Frame(root, bg="#f0f0f0")
 welcome_frame.pack(expand=True, fill="both")
 
-# Additional frames
+## Additional frames
+# Create new frames when traveling between page -> form
 dashboard_frame = None
 form_frame = None
 category_frame = None
+
 person_frame = None
 person_form_frame = None
 
@@ -57,6 +60,7 @@ def connect():
             database = "flight_tracking"
         )
 
+# Procedures dashboard setup
 def go_to_dashboard():
     global dashboard_frame
     # Reset frame
@@ -64,6 +68,9 @@ def go_to_dashboard():
     
     dashboard_frame = tk.Frame(root, bg="#e6f2ff")
     dashboard_frame.pack(expand=True, fill="both")
+    
+    nav_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
+    nav_frame.pack(pady=10)
 
     tk.Label(
         dashboard_frame,
@@ -79,19 +86,17 @@ def go_to_dashboard():
     procedures = {
         "add_airplane" : add_airplane_page,
         "add_airport" : add_airport_page,
-        "add_person" : add_person_page
+        "add_person" : add_person_page,
+        "grant_or_revoke_pilot_license" : pilot_license_page,
+        "offer_flight" : offer_flight_page,
+        "flight_landing" : flight_landing_page,
+        "flight_takeoff" : flight_takeoff_page,
+        "passengers_board" : passengers_board_page,
+        "passengers_disembark" : passengers_disembark_page,
+        "assign_pilot" : assign_pilot_page,
+        "recycle_crew" : recycle_crew_page,
+        "retire_flight" : retire_flight_page,
     }
-    
-    incomplete = [
-        "grant_or_revoke_pilot_license", 
-        "offer_flight", "flight_landing", 
-        "flight_takeoff", "passengers_board", 
-        "passengers_disembark",
-        "assign_pilot", 
-        "recycle_crew", 
-        "retire_flight", 
-        "simulation_cycle"
-    ]
     
     for idx, (proc, func) in enumerate(procedures.items()):
         tk.Button(
@@ -102,11 +107,18 @@ def go_to_dashboard():
         ).grid(row=idx // 2, column=idx % 2, padx=10, pady=5)
     
     tk.Button(
-        dashboard_frame,
+        nav_frame,
         text="Back",
+        width=20,
         command=lambda: [dashboard_frame.pack_forget(), welcome_frame.pack(expand=True, fill="both")]
-    ).pack(pady=10)
-
+    ).grid(row=5, column=0, padx=10)
+    
+    tk.Button(
+        nav_frame,
+        text="Simulate Cycle",
+        width=20,
+        command=simulation
+    ).grid(row=5, column=1, padx=10)
 
 # add_airplane() setup
 def add_airplane_page():
@@ -299,7 +311,8 @@ def add_airplane_form(prev_frame, plane_type):
         text="Back",
         command=lambda: [form_frame.pack_forget(), add_airplane_page()]
     ).pack(pady=10)
-    
+
+# add_airport() setup
 def add_airport_page():
     global dashboard_frame
     dashboard_frame.pack_forget()
@@ -335,8 +348,8 @@ def add_airport_page():
             conn = connect()
                 
             with conn.cursor() as cursor:
-                cursor.callproc("add_airport", (airport_id, airport_name, city, state, location_id))
-                    
+                cursor.callproc("add_airport", (airport_id, airport_name, city, state, country, location_id))
+                
             conn.commit()
                 
             messagebox.showinfo("Success", "Airport added successfully.")
@@ -355,6 +368,7 @@ def add_airport_page():
         command=lambda: [airport_frame.pack_forget(), dashboard_frame.pack(expand=True, fill="both")]
     ).pack(pady=10)
 
+# add_person setup
 def add_person_page():
     global dashboard_frame
     global person_frame
@@ -393,22 +407,20 @@ def add_person_page():
         command=lambda: [person_frame.pack_forget(), dashboard_frame.pack(expand=True, fill="both")]
     ).pack(pady=20)
 
-## TODO: ADD PERSON TO PILOT OR PASSENGER
-# labels = ["Person ID", "First Name", "Last Name", "Location ID", "Tax ID", "Experience", "Miles", "Funds"]
 def add_person_form(prev_frame, person_type):
     global person_form_frame
     person_form_frame = tk.Frame(root, bg="#dff0ff")
     person_form_frame.pack(expand=True, fill="both")
     
     if person_type == "passenger":
-        tk.Label(form_frame, text="Add Passenger", font=("Helvetica", 20, "bold"), bg="#dff0ff").pack(pady=20)
+        tk.Label(person_form_frame, text="Add Passenger", font=("Helvetica", 20, "bold"), bg="#dff0ff").pack(pady=20)
 
-        labels = ["Person ID", "First Name", "Last Name", "Location ID", "Miles", "Funds"]
+        labels = ["Passenger ID", "First Name", "Last Name", "Location ID", "Miles", "Funds"]
         entries = []
 
         for label in labels:
             
-            frame = tk.Frame(form_frame, bg="#dff0ff")
+            frame = tk.Frame(person_form_frame, bg="#dff0ff")
             frame.pack(pady=5)
             tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
             entry = tk.Entry(frame, width=30)
@@ -435,7 +447,575 @@ def add_person_form(prev_frame, person_type):
                 
             finally:
                 conn.close()
+        
+        tk.Button(
+            person_form_frame,
+            text="Back",
+            command=lambda: [person_form_frame.pack_forget(), add_person_page()]
+        ).pack(pady=10)
+            
     
+    if person_type == "pilot":
+        tk.Label(person_form_frame, text="Add Pilot", font=("Helvetica", 20, "bold"), bg="#dff0ff").pack(pady=20)
+
+        labels = ["Pilot ID", "First Name", "Last Name", "Location ID", "Tax ID", "Experience"]
+        entries = []
+
+        for label in labels:
+            
+            frame = tk.Frame(person_form_frame, bg="#dff0ff")
+            frame.pack(pady=5)
+            tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+            entry = tk.Entry(frame, width=30)
+            entry.pack(side='left')
+            entries.append(entry)
+
+        def submit():
+            person_id, fname, lname, location_id, tax_id, experience = [e.get() for e in entries]
+            
+            lname = lname if lname.strip() != "" else None
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("add_person", (person_id, fname, lname, location_id, tax_id, int(experience), None, None))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Pilot added successfully.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to add pilot:\n{e}")
+                
+            finally:
+                conn.close()
+        
+        tk.Button(person_form_frame, text="Submit", command=submit).pack(pady=10)
+        
+        tk.Button(
+            person_form_frame,
+            text="Back",
+            command=lambda: [person_form_frame.pack_forget(), add_person_page()]
+        ).pack(pady=10)
+    
+# grant_or_revoke_pilot_license() setup
+def pilot_license_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    pilot_license_frame = tk.Frame(root, bg="#e6ffe6")
+    pilot_license_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        pilot_license_frame,
+        text="Grant or Remove License From Pilot",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    tk.Label(
+        pilot_license_frame,
+        text="Type in pilot license to add or remove.",
+        font=("Helvetica", 16),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Pilot ID", "License Name"]
+    entries = []
+
+    for label in labels:
+        
+        frame = tk.Frame(pilot_license_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            person_id, license = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("grant_or_revoke_pilot_license", (person_id, license))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "License change completed.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to perform license change:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(pilot_license_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        pilot_license_frame,
+        text="Back",
+        command=lambda: [pilot_license_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+    
+# offer_flight() setup
+def offer_flight_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    offer_flight_frame = tk.Frame(root, bg="#e6ffe6")
+    offer_flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        offer_flight_frame,
+        text="Offer Flight",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID", "Route ID", "Supporting Airline", "Supporting Tail", "Progress", "Next Time", "Cost"]
+    entries = []
+
+    for label in labels:
+        
+        frame = tk.Frame(offer_flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+        if (label == "Next Time"):
+            entry.insert(0, "HH:MM:SS")
+            entry.bind("<FocusIn>", lambda args: entry.delete('0', 'end'))
+        
+    def submit():
+            flight_id, route_id, support_airline, support_tail, progress, next_time, cost = [e.get() for e in entries]
+            
+            next_time = datetime.strptime(next_time, "%H:%M:%S").time()
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("offer_flight", (flight_id, route_id, support_airline, support_tail, int(progress), next_time, int(cost)))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Flight offered.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to offer flight:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(offer_flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        offer_flight_frame,
+        text="Back",
+        command=lambda: [offer_flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# flight_landing() setup
+def flight_landing_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    flight_frame = tk.Frame(root, bg="#e6ffe6")
+    flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        flight_frame,
+        text="Flight Landing",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            flight_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("flight_landing", (flight_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Flight landed.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to land flight:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        flight_frame,
+        text="Back",
+        command=lambda: [flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# flight takeoff() setup
+def flight_takeoff_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    flight_frame = tk.Frame(root, bg="#e6ffe6")
+    flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        flight_frame,
+        text="Flight Takeoff",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            flight_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("flight_takeoff", (flight_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Flight taken off.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to take off flight:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        flight_frame,
+        text="Back",
+        command=lambda: [flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# passengers_board() setup
+def passengers_board_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    flight_frame = tk.Frame(root, bg="#e6ffe6")
+    flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        flight_frame,
+        text="Passenger Boarding",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            flight_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("passengers_board", (flight_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Passengers boarded.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to board passengers:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        flight_frame,
+        text="Back",
+        command=lambda: [flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+    
+# passengers_disembark() setup
+def passengers_disembark_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    flight_frame = tk.Frame(root, bg="#e6ffe6")
+    flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        flight_frame,
+        text="Passenger Disembark",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            flight_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("passengers_disembark", (flight_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Passengers disembarked.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to disembark passengers:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        flight_frame,
+        text="Back",
+        command=lambda: [flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# assign_pilot() setup
+def assign_pilot_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    assign_pilot_frame = tk.Frame(root, bg="#e6ffe6")
+    assign_pilot_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        assign_pilot_frame,
+        text="Assign Pilot to Flight",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID", "Pilot ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(assign_pilot_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+    
+    def submit():
+            flight_id, pilot_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("assign_pilot", (flight_id, pilot_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Pilot assigned.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to assign pilot:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(assign_pilot_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        assign_pilot_frame,
+        text="Back",
+        command=lambda: [assign_pilot_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# recycle_crew() setup
+def recycle_crew_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    flight_frame = tk.Frame(root, bg="#e6ffe6")
+    flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        flight_frame,
+        text="Recycling Crew",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            flight_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("recycle_crew", (flight_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Crew recycled.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to recycle crew:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        flight_frame,
+        text="Back",
+        command=lambda: [flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# retire_flight() setup
+def retire_flight_page():
+    global dashboard_frame
+    dashboard_frame.pack_forget()
+    
+    flight_frame = tk.Frame(root, bg="#e6ffe6")
+    flight_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        flight_frame,
+        text="Retiring Flight",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6ffe6"
+    ).pack(pady=30)
+    
+    labels = ["Flight ID"]
+    entries = []
+    
+    for label in labels:
+        
+        frame = tk.Frame(flight_frame, bg="#dff0ff")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#dff0ff").pack(side='left')
+        entry = tk.Entry(frame, width=30)
+        entry.pack(side='left')
+        entries.append(entry)
+        
+    def submit():
+            flight_id = [e.get() for e in entries]
+            
+            try:
+                conn = connect()
+                
+                with conn.cursor() as cursor:
+                    cursor.callproc("retire_flight", (flight_id))
+                    
+                conn.commit()
+                
+                messagebox.showinfo("Success", "Flight retired.")
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to retire flight:\n{e}")
+                
+            finally:
+                conn.close()
+        
+    tk.Button(flight_frame, text="Submit", command=submit).pack(pady=10)
+    
+    tk.Button(
+        flight_frame,
+        text="Back",
+        command=lambda: [flight_frame.pack_forget(), go_to_dashboard()]
+    ).pack(pady=10)
+
+# simulation_cycle() setup
+def simulation():
+    try:
+        conn = connect()
+                
+        with conn.cursor() as cursor:
+            cursor.callproc("simulate_cycle")
+                    
+            conn.commit()
+                
+            messagebox.showinfo("Success", "Flights simulated.")
+                
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to simulate database:\n{e}")
+                
+    finally:
+        conn.close()
+
 def clean_exit():
     root.quit()
     root.destroy()
