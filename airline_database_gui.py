@@ -69,19 +69,19 @@ def go_to_dashboard():
     dashboard_frame = tk.Frame(root, bg="#e6f2ff")
     dashboard_frame.pack(expand=True, fill="both")
     
-    nav_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
-    nav_frame.pack(pady=10)
+    dashboard_frame.columnconfigure(0, weight=1)
+    dashboard_frame.rowconfigure(1, weight=1)
 
     tk.Label(
         dashboard_frame,
         text="Stored Procedure Dashboard",
         font=("Helvetica", 20, "bold"),
         bg="#e6f2ff"
-    ).pack(pady=20)
+    ).grid(row=0, column=0, pady=20)
 
     # Buttons
     button_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
-    button_frame.pack(pady=20)
+    button_frame.grid(row=1, column=0)
     
     procedures = {
         "add_airplane" : add_airplane_page,
@@ -106,19 +106,23 @@ def go_to_dashboard():
             command=func
         ).grid(row=idx // 2, column=idx % 2, padx=10, pady=5)
     
+    nav_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
+    nav_frame.grid(row=2, column=0, pady=20)
+    
     tk.Button(
         nav_frame,
         text="Back",
         width=20,
         command=lambda: [dashboard_frame.pack_forget(), welcome_frame.pack(expand=True, fill="both")]
-    ).grid(row=5, column=0, padx=10)
+    ).grid(row=0, column=0, padx=10)
+    
     
     tk.Button(
         nav_frame,
         text="Simulate Cycle",
         width=20,
         command=simulation
-    ).grid(row=5, column=1, padx=10)
+    ).grid(row=0, column=1, padx=10)
 
 # add_airplane() setup
 def add_airplane_page():
