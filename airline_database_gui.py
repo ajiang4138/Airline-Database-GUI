@@ -71,40 +71,81 @@ def go_to_dashboard():
     
     dashboard_frame.columnconfigure(0, weight=1)
     dashboard_frame.rowconfigure(1, weight=1)
+    
+    button_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
+    button_frame.grid(row=1, column=0)
 
+    # Labels
     tk.Label(
         dashboard_frame,
         text="Stored Procedure Dashboard",
         font=("Helvetica", 20, "bold"),
         bg="#e6f2ff"
     ).grid(row=0, column=0, pady=20)
+    
+    tk.Label(button_frame, text="Add / License", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=0, pady=(0, 10))
+    tk.Label(button_frame, text="Flight Operations", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=1, pady=(0, 10))
+    tk.Label(button_frame, text="Other Procedures", font=("Helvetica", 14, "bold"), bg="#e6f2ff").grid(row=0, column=2, pady=(0, 10))
 
     # Buttons
-    button_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
-    button_frame.grid(row=1, column=0)
     
-    procedures = {
-        "add_airplane" : add_airplane_page,
-        "add_airport" : add_airport_page,
-        "add_person" : add_person_page,
-        "grant_or_revoke_pilot_license" : pilot_license_page,
-        "offer_flight" : offer_flight_page,
-        "flight_landing" : flight_landing_page,
-        "flight_takeoff" : flight_takeoff_page,
-        "passengers_board" : passengers_board_page,
-        "passengers_disembark" : passengers_disembark_page,
-        "assign_pilot" : assign_pilot_page,
-        "recycle_crew" : recycle_crew_page,
-        "retire_flight" : retire_flight_page,
+    add_and_license = {
+        "Add Airplane": add_airplane_page,
+        "Add Airport": add_airport_page,
+        "Add Person": add_person_page,
+        "Grant/Revoke License": pilot_license_page
     }
     
-    for idx, (proc, func) in enumerate(procedures.items()):
-        tk.Button(
-            button_frame,
-            text=proc.replace("_", " ").title(),
-            width=30,
-            command=func
-        ).grid(row=idx // 2, column=idx % 2, padx=10, pady=5)
+    flight_ops = {
+        "Offer Flight": offer_flight_page,
+        "Flight Landing": flight_landing_page,
+        "Flight Takeoff": flight_takeoff_page
+    }
+    
+    other_procedures = {
+        "Assign Pilot": assign_pilot_page,
+        "Passengers Board": passengers_board_page,
+        "Passengers Disembark": passengers_disembark_page,
+        "Recycle Crew": recycle_crew_page,
+        "Retire Flight": retire_flight_page
+    }
+    
+    def populate_column(procs, col):
+        for idx, (label, func) in enumerate(procs.items()):
+            tk.Button(
+                button_frame,
+                text=label,
+                width=25,
+                command=func
+            ).grid(row=idx + 1, column=col, padx=10, pady=5)
+            
+    populate_column(add_and_license, 0)
+    populate_column(flight_ops, 1)
+    populate_column(other_procedures, 2)
+    
+    # procedures = {
+    #     "add_airplane" : add_airplane_page,
+    #     "add_airport" : add_airport_page,
+    #     "add_person" : add_person_page,
+    #     "grant_or_revoke_pilot_license" : pilot_license_page,
+    #     "offer_flight" : offer_flight_page,
+    #     "flight_landing" : flight_landing_page,
+    #     "flight_takeoff" : flight_takeoff_page,
+    #     "passengers_board" : passengers_board_page,
+    #     "passengers_disembark" : passengers_disembark_page,
+    #     "assign_pilot" : assign_pilot_page,
+    #     "recycle_crew" : recycle_crew_page,
+    #     "retire_flight" : retire_flight_page,
+    # }
+    
+    
+    # for idx, (proc, func) in enumerate(procedures.items()):
+    #     tk.Button(
+    #         button_frame,
+    #         text=proc.replace("_", " ").title(),
+    #         width=30,
+    #         command=func
+    #     ).grid(row=idx // 2, column=idx % 2, padx=10, pady=5)
     
     nav_frame = tk.Frame(dashboard_frame, bg="#e6f2ff")
     nav_frame.grid(row=2, column=0, pady=20)
