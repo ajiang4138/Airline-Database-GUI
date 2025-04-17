@@ -42,6 +42,16 @@ desc_label = tk.Label(
 )
 desc_label.pack(pady=10)
 
+# CHECK HERE
+def connect():
+    return pymysql.connect (
+            host = "localhost",
+            port = 3306,
+            user = "root",
+            password = "*****", #insert your password here! Make sure to remove password when committing
+            database = "flight_tracking"
+        )
+
 def test_connection():
     try:
         connection = connect()
@@ -50,15 +60,6 @@ def test_connection():
     
     except Exception as e:
         messagebox.showerror("Connection Error", f"Failed to connect:\n{e}")
-        
-def connect():
-    return pymysql.connect (
-            host = "localhost",
-            port = 3306,
-            user = "root",
-            password = "2414510759/Aa", #insert your password here! Make sure to remove password when committing
-            database = "flight_tracking"
-        )
 
 # Procedures dashboard setup
 def go_to_dashboard():
@@ -1075,5 +1076,4 @@ tk.Button(button_frame, text="Connections Test", width=20, command=test_connecti
 tk.Button(button_frame, text="Exit", width=20, command=clean_exit).grid(row=0, column=3, padx=10, pady=10)
 
 # Create window
-
 root.mainloop()
