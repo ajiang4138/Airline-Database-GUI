@@ -1,6 +1,7 @@
 import tkinter as tk
+import tkinter.font as tkFont
 from datetime import *
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 import pymysql
 
@@ -8,7 +9,7 @@ import pymysql
 
 root = tk.Tk()
 root.title("Flight Tracker Database")
-root.geometry("800x500")
+root.geometry("1920x1080")
 root.configure(bg="#f0f0f0")
 
 # Welcome frame
@@ -24,23 +25,7 @@ category_frame = None
 person_frame = None
 person_form_frame = None
 
-title_label = tk.Label(
-    welcome_frame,
-    text="Welcome to Flight Tracker",
-    font=("Helvetica", 24, "bold"),
-    bg="#f0f0f0",
-    fg="#333"
-)
-title_label.pack(pady=30)
-
-desc_label = tk.Label(
-    welcome_frame,
-    text="Manage flights, track status, and view records easily.\nUse the menu or buttons below to get started.",
-    font=("Helvetica", 14),
-    bg = "#f0f0f0",
-    fg="#000"
-)
-desc_label.pack(pady=10)
+views_frame = None
 
 # CHECK HERE
 def connect():
@@ -48,7 +33,7 @@ def connect():
             host = "localhost",
             port = 3306,
             user = "root",
-            password = "*****", #insert your password here! Make sure to remove password when committing
+            password = "2414510759/Aa", #insert your password here! Make sure to remove password when committing
             database = "flight_tracking"
         )
 
@@ -1062,16 +1047,146 @@ def simulation():
     finally:
         conn.close()
 
+# Views dashboard setup
+def go_to_views():
+    global views_frame
+    welcome_frame.pack_forget()
+    
+    views_frame = tk.Frame(root, bg="#e6f2ff")
+    views_frame.pack(expand=True, fill="both")
+    
+    tk.Label(
+        views_frame,
+        text="Views Dashboard",
+        font=("Helvetica", 20, "bold"),
+        bg="#e6f2ff"
+    ).pack(pady=20)
+    
+    button_frame = tk.Frame(views_frame, bg="#e6f2ff")
+    button_frame.pack(pady=10)
+    
+    views = {"Flights in the Air" : "flights_in_the_air", 
+            "Flights on the Ground" : "flights_on_the_ground", 
+            "People in the Air" : "people_in_the_air", 
+            "People on the Ground" : "people_on_the_ground", 
+            "Route Summary" : "route_summary", 
+            "Alternative Flights" : "alternative_airports"}
+    
+    for idx, (label, view_name) in enumerate(views.items()):
+        tk.Button(
+            button_frame,
+            text=label,
+            width=30,
+            command=lambda vn=view_name: show_view(label, vn)
+        ).grid(row=idx, column=0, pady=5)
+        
+    
+    tk.Button(
+        views_frame,
+        text="Back",
+        command=lambda: [views_frame.pack_forget(), welcome_frame.pack(expand=True, fill="both")]
+    ).pack(pady=20)
+
+def show_view(label_name, view_name):
+    global views_frame
+    views_frame.pack_forget()
+    
+    precursor_frame = tk.Frame(root, bg="#ffffff")
+    precursor_frame.pack(pady=10)
+    
+    font = tkFont.Font()
+    
+    tk.Label(
+        precursor_frame,
+        text=label_name,
+        font=("Helvetica", 20, "bold"),
+        bg="#000000"
+    ).pack(pady=30)
+    
+    data_frame = tk.Frame(precursor_frame, bg="#ffffff")
+    data_frame.pack(pady=10)
+    
+    try:
+        conn = connect()
+        with conn.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {view_name}")
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
+    
+    except Exception as e:
+        messagebox.showerror("Error", f" Could load view '{view_name}':\n{e}")
+        return
+    
+    finally:
+        conn.close()
+        
+    for x in data_frame.winfo_children():
+        x.destroy()
+    
+    tree = ttk.Treeview(data_frame, columns=columns, show="headings")
+    
+    for col in columns:
+        max_width = font.measure(col) + 70
+        
+        for row in rows:
+            cell_text = str(row[columns.index(col)])
+            cell_width = font.measure(cell_text)
+            
+            if cell_width > max_width:
+                max_width = cell_width
+        
+        tree.heading(col, text=col)
+        tree.column(col, width=max_width, anchor="w")
+        
+    for row in rows:
+        tree.insert("", "end", values=row)
+
+
+    tree.pack(side="left", fill="both", expand=True)
+
+    v_scrollbar = ttk.Scrollbar(data_frame, orient="vertical", command=tree.yview)
+    v_scrollbar.pack(side="right", fill="y")
+    tree.configure(yscrollcommand=v_scrollbar.set)
+    
+    h_scrollbar = ttk.Scrollbar(data_frame, orient="horizontal", command=tree.xview)
+    h_scrollbar.pack(fill="x")
+    tree.configure(xscrollcommand=h_scrollbar.set)
+    
+    tk.Button(
+        precursor_frame,
+        text="Back",
+        command=lambda: [precursor_frame.pack_forget(), data_frame.pack_forget(), views_frame.pack(expand=True, fill="both")]
+    ).pack(pady=10)
+
 def clean_exit():
     root.quit()
     root.destroy()
+    
+# start page setup
+title_label = tk.Label(
+    welcome_frame,
+    text="Welcome to Flight Tracker",
+    font=("Helvetica", 24, "bold"),
+    bg="#f0f0f0",
+    fg="#333"
+)
+title_label.pack(pady=30)
+
+desc_label = tk.Label(
+    welcome_frame,
+    text="Manage flights, track status, and view records easily.\nUse the menu or buttons below to get started.",
+    font=("Helvetica", 14),
+    bg = "#f0f0f0",
+    fg="#000"
+)
+desc_label.pack(pady=10)
 
 # Welcome buttons
 button_frame = tk.Frame(welcome_frame, bg="#f0f0f0")
 button_frame.pack(pady=30)
 
 tk.Button(button_frame, text="Procedures Dashboard", width=20, command=go_to_dashboard).grid(row=0, column=0, padx=10, pady=10)
-tk.Button(button_frame, text="Views Dashboard", width=20, command=go_to_dashboard).grid(row=0, column=1, padx=10, pady=10)
+tk.Button(button_frame, text="Views Dashboard", width=20, command=go_to_views).grid(row=0, column=1, padx=10, pady=10)
 tk.Button(button_frame, text="Connections Test", width=20, command=test_connection).grid(row=0, column=2, padx=10, pady=10)
 tk.Button(button_frame, text="Exit", width=20, command=clean_exit).grid(row=0, column=3, padx=10, pady=10)
 
