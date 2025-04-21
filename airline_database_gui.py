@@ -27,13 +27,16 @@ person_form_frame = None
 
 views_frame = None
 
+# Info
+pw = None
+
 # CHECK HERE
 def connect():
     return pymysql.connect (
             host = "localhost",
             port = 3306,
             user = "root",
-            password = "2414510759/Aa", #insert your password here! Make sure to remove password when committing
+            password = pw, #insert your password here! Make sure to remove password when committing
             database = "flight_tracking"
         )
 
@@ -1079,7 +1082,6 @@ def go_to_views():
             width=30,
             command=lambda vn=view_name: show_view(label, vn)
         ).grid(row=idx, column=0, pady=5)
-        
     
     tk.Button(
         views_frame,

@@ -6,15 +6,18 @@
 
 ### On Windows
 - tkinter should already be installed by default with python3
-- pip install mypysql
+    - If not installed, run python -m tkinter
+        - Or python3 -m tkinter
+- pip install pymysql
 
 ### On macos
 - pip install python-tk
-- pip install mypysql
+- pip install pymysql
 
 OR
+
 - brew install python-tk
-- brew install mypysql
+- brew install pymysql
 
 #### To test GUI
 - Go to terminal, navigate to folder (ls, cd)
@@ -25,3 +28,9 @@ OR
     - Like password, host, port, etc...
 - Color palettes appear to be different between Windows and Mac
     - Keep this in mind when adding and changing colors.
+
+# Technologies Used
+- In our project, we used two python libraries: Tkinter and pymysql. Tkinter is a built-in GUI that comes with python, and it supports the buttons/text fields used in our project. pymysql is a library for python that allows us to connect to a running MySQL server, and allows us to access the database, views, and procedures.
+
+# Work distribution
+- 
