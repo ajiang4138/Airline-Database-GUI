@@ -1042,7 +1042,7 @@ def simulation():
         conn = connect()
                 
         with conn.cursor() as cursor:
-            cursor.callproc("simulate_cycle")
+            cursor.callproc("simulation_cycle")
                     
             conn.commit()
                 
