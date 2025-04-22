@@ -28,23 +28,26 @@ person_form_frame = None
 views_frame = None
 
 # Info
-pw = None
+host = "localhost"
+port = 3306
+user = "root"
+password = None
+database = 'flight_tracking'
 
 # CHECK HERE
 def connect():
     return pymysql.connect (
-            host = "localhost",
-            port = 3306,
-            user = "root",
-            password = pw, #insert your password here! Make sure to remove password when committing
-            database = "flight_tracking"
+            host = host,
+            port = port,
+            user = user,
+            password = password, #insert your password here! Make sure to remove password when committing
+            database = database
         )
 
 def test_connection():
     try:
         connection = connect()
         connection.close()
-        messagebox.showinfo("Connection Status", "Successfully connected to MySQL!")
     
     except Exception as e:
         messagebox.showerror("Connection Error", f"Failed to connect:\n{e}")
