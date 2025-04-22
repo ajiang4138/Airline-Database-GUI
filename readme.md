@@ -1,3 +1,6 @@
+# Information
+This is the phase IV project for CS 4400: Intro to Databases, created by Allen Jiang and Jonathan Liang. We created a python GUI that is connected to a MySQL database capable of running custom queries, running built in procedures, and displaying tables and views from the database.
+
 # Packages
 - tkinter
 - mypysql
