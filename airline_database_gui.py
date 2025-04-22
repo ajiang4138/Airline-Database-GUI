@@ -5,6 +5,8 @@ from tkinter import messagebox, ttk
 
 import pymysql
 
+from colors import COLORS
+
 # GUI setup
 
 root = tk.Tk()
@@ -27,11 +29,13 @@ person_form_frame = None
 
 views_frame = None
 
+query_frame = None
+
 # Info
 host = "localhost"
 port = 3306
 user = "root"
-password = None
+password = "2414510759/Aa"
 database = 'flight_tracking'
 
 # CHECK HERE
@@ -1096,7 +1100,7 @@ def show_view(label_name, view_name):
     global views_frame
     views_frame.pack_forget()
     
-    precursor_frame = tk.Frame(root, bg="#ffffff")
+    precursor_frame = tk.Frame(root, bg=COLORS["background"])
     precursor_frame.pack(pady=10)
     
     font = tkFont.Font()
@@ -1105,10 +1109,10 @@ def show_view(label_name, view_name):
         precursor_frame,
         text=label_name,
         font=("Helvetica", 20, "bold"),
-        bg="#000000"
+        bg=COLORS["background"]
     ).pack(pady=30)
     
-    data_frame = tk.Frame(precursor_frame, bg="#ffffff")
+    data_frame = tk.Frame(precursor_frame, bg=COLORS["background"])
     data_frame.pack(pady=10)
     
     try:
@@ -1163,6 +1167,73 @@ def show_view(label_name, view_name):
         command=lambda: [precursor_frame.pack_forget(), data_frame.pack_forget(), views_frame.pack(expand=True, fill="both")]
     ).pack(pady=10)
 
+def go_query():
+    global query_frame
+    welcome_frame.pack_forget()
+    
+    query_frame = tk.Frame(root, bg="#fff0f5")
+    query_frame.pack(expand=True, fill="both")
+    
+    tk.Label(query_frame, text="Enter Custom SQL Query", font=("Helvetica", 18, "bold"), bg="#fff0f5").pack(pady=20)
+
+    text_box = tk.Text(query_frame, height=5, width=80, font=("Courier", 12))
+    text_box.pack(pady=10)
+    
+    output_frame = tk.Frame(query_frame)
+    output_frame.pack(pady=10, expand=True, fill="both")
+
+    def run_query():
+        query = text_box.get("1.0", tk.END).strip()
+
+        for widget in output_frame.winfo_children():
+            widget.destroy()
+
+        if not query.lower().startswith("select"):
+            messagebox.showwarning("Unsupported Query", "Only SELECT queries are allowed.")
+            return
+
+        try:
+            conn = connect()
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                columns = [desc[0] for desc in cursor.description]
+                rows = cursor.fetchall()
+        except Exception as e:
+            messagebox.showerror("Query Error", f"Failed to execute query:\n{e}")
+            return
+        finally:
+            conn.close()
+
+        # Display results
+        tree = ttk.Treeview(output_frame, columns=columns, show="headings")
+        font = tkFont.Font()
+
+        for col in columns:
+            max_width = font.measure(col) + 20
+            for row in rows:
+                cell_width = font.measure(str(row[columns.index(col)]))
+                if cell_width > max_width:
+                    max_width = cell_width
+            tree.heading(col, text=col)
+            tree.column(col, width=min(max_width, 500), anchor="w")
+
+        for row in rows:
+            tree.insert("", "end", values=row)
+
+        tree.pack(side="left", fill="both", expand=True)
+
+        scrollbar_y = ttk.Scrollbar(output_frame, orient="vertical", command=tree.yview)
+        scrollbar_y.pack(side="right", fill="y")
+        tree.configure(yscrollcommand=scrollbar_y.set)
+
+        scrollbar_x = ttk.Scrollbar(query_frame, orient="horizontal", command=tree.xview)
+        scrollbar_x.pack(fill="x")
+        tree.configure(xscrollcommand=scrollbar_x.set)
+
+    tk.Button(query_frame, text="Run Query", width=15, command=run_query).pack(pady=5)
+
+    tk.Button(query_frame, text="Back", width=15, command=lambda: [query_frame.pack_forget(), welcome_frame.pack(expand=True, fill="both")]).pack(pady=10)
+
 def clean_exit():
     root.quit()
     root.destroy()
@@ -1192,7 +1263,12 @@ button_frame.pack(pady=30)
 
 tk.Button(button_frame, text="Procedures Dashboard", width=20, command=go_to_dashboard).grid(row=0, column=0, padx=10, pady=10)
 tk.Button(button_frame, text="Views Dashboard", width=20, command=go_to_views).grid(row=0, column=1, padx=10, pady=10)
-tk.Button(button_frame, text="Connections Test", width=20, command=test_connection).grid(row=0, column=2, padx=10, pady=10)
+tk.Button(
+    button_frame,
+    text="Custom Query",
+    width=20,
+    command=go_query
+).grid(row=0, column=2, padx=10, pady=10)
 tk.Button(button_frame, text="Exit", width=20, command=clean_exit).grid(row=0, column=3, padx=10, pady=10)
 
 # Create window
