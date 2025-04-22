@@ -1086,7 +1086,7 @@ def go_to_views():
             button_frame,
             text=label,
             width=30,
-            command=lambda vn=view_name: show_view(label, vn)
+            command=lambda l=label, vn=view_name: show_view(l, vn)
         ).grid(row=idx, column=0, pady=5)
     
     tk.Button(
