@@ -11,18 +11,21 @@
 - pip install pymysql
 
 ### On macos
+```
 - pip install python-tk
 - pip install pymysql
+```
 
 OR
-
+``` 
 - brew install python-tk
 - brew install pymysql
+```
 
 # HOW TO RUN
+- Download a python IDE (preferably VSCode)
 - Install required packages
-- Run airline_database_gui.exe
-- For best experience, please run on Windows computer.
+- Run `airline_database_gui.py`
 
 # Notes
 - Make sure to change the connection method to your database, otherwise it will not work.
@@ -34,4 +37,4 @@ OR
 - In our project, we used two python libraries: Tkinter and pymysql. Tkinter is a built-in GUI that comes with python, and it supports the buttons/text fields used in our project. pymysql is a library for python that allows us to connect to a running MySQL server, and allows us to access the database, views, and procedures.
 
 # Work distribution
-- Allen worked on the procedures portion of the GUI, while Jonathan worked on the custom query page and the views portion of the GUI. 
+- Allen worked on the procedures portion of the GUI, while Jonathan worked on the custom query page and the views portion of the GUI. Remaining work was divided roughly by half between the two of us.
