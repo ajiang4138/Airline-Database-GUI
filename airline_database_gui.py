@@ -11,12 +11,11 @@ from colors import COLORS
 
 root = tk.Tk()
 root.title("Flight Tracker Database")
-root.geometry("1920x1080")
+root.geometry("1200x700")
 root.configure(bg="#f0f0f0")
 
 # Welcome frame
-welcome_frame = tk.Frame(root, bg="#f0f0f0")
-welcome_frame.pack(expand=True, fill="both")
+welcome_frame = None
 
 ## Additional frames
 # Create new frames when traveling between page -> form
@@ -35,7 +34,7 @@ query_frame = None
 host = "localhost"
 port = 3306
 user = "root"
-password = "2414510759/Aa"
+password = None # MAKE SURE TO CHANGE FOR HARD CODE
 database = 'flight_tracking'
 
 # CHECK HERE
@@ -1237,39 +1236,78 @@ def go_query():
 def clean_exit():
     root.quit()
     root.destroy()
-    
-# start page setup
-title_label = tk.Label(
-    welcome_frame,
-    text="Welcome to Flight Tracker",
-    font=("Helvetica", 24, "bold"),
-    bg="#f0f0f0",
-    fg="#333"
-)
-title_label.pack(pady=30)
 
-desc_label = tk.Label(
-    welcome_frame,
-    text="Manage flights, track status, and view records easily.\nUse the menu or buttons below to get started.",
-    font=("Helvetica", 14),
-    bg = "#f0f0f0",
-    fg="#000"
-)
-desc_label.pack(pady=10)
+def show_welcome_frame():
+    global welcome_frame
+    welcome_frame = tk.Frame(root, bg="#f0f0f0")
+    welcome_frame.pack(expand=True, fill="both")
 
-# Welcome buttons
-button_frame = tk.Frame(welcome_frame, bg="#f0f0f0")
-button_frame.pack(pady=30)
+    title_label = tk.Label(
+        welcome_frame,
+        text="Welcome to Flight Tracker",
+        font=("Helvetica", 24, "bold"),
+        bg="#f0f0f0",
+        fg="#333"
+    )
+    title_label.pack(pady=30)
 
-tk.Button(button_frame, text="Procedures Dashboard", width=20, command=go_to_dashboard).grid(row=0, column=0, padx=10, pady=10)
-tk.Button(button_frame, text="Views Dashboard", width=20, command=go_to_views).grid(row=0, column=1, padx=10, pady=10)
-tk.Button(
-    button_frame,
-    text="Custom Query",
-    width=20,
-    command=go_query
-).grid(row=0, column=2, padx=10, pady=10)
-tk.Button(button_frame, text="Exit", width=20, command=clean_exit).grid(row=0, column=3, padx=10, pady=10)
+    desc_label = tk.Label(
+        welcome_frame,
+        text="Manage flights, track status, and view records easily.\nUse the menu or buttons below to get started.",
+        font=("Helvetica", 14),
+        bg="#f0f0f0",
+        fg="#000"
+    )
+    desc_label.pack(pady=10)
+
+    button_frame = tk.Frame(welcome_frame, bg="#f0f0f0")
+    button_frame.pack(pady=30)
+
+    tk.Button(button_frame, text="Procedures Dashboard", width=20, command=go_to_dashboard).grid(row=0, column=0, padx=10, pady=10)
+    tk.Button(button_frame, text="Views Dashboard", width=20, command=go_to_views).grid(row=0, column=1, padx=10, pady=10)
+    tk.Button(button_frame, text="Custom Query", width=20, command=go_query).grid(row=0, column=2, padx=10, pady=10)
+    tk.Button(button_frame, text="Exit", width=20, command=clean_exit).grid(row=0, column=3, padx=10, pady=10)
 
 # Create window
+def show_login_frame():
+    global login_frame
+    login_frame = tk.Frame(root, bg="#f9f9f9")
+    login_frame.pack(expand=True, fill="both")
+
+    tk.Label(login_frame, text="Connect to MySQL Server", font=("Helvetica", 20, "bold"), bg="#f9f9f9").pack(pady=30)
+
+    fields = [("Host", "localhost"), ("Port", "3306"), ("User", "root"), ("Password", "")]
+    entries = {}
+
+    for label, default in fields:
+        frame = tk.Frame(login_frame, bg="#f9f9f9")
+        frame.pack(pady=5)
+        tk.Label(frame, text=label + ":", width=15, anchor='w', bg="#f9f9f9").pack(side='left')
+
+        entry = tk.Entry(frame, width=30, show="*" if label == "Password" else "")
+        entry.insert(0, default)
+        entry.pack(side='left')
+        entries[label] = entry
+
+    def attempt_login():
+        global host, port, user, password
+        host = entries["Host"].get()
+        port = int(entries["Port"].get())
+        user = entries["User"].get()
+        password = entries["Password"].get()
+
+        try:
+            conn = connect()
+            conn.close()
+            messagebox.showinfo("Success", "Connected to database!")
+            login_frame.pack_forget()
+            show_welcome_frame()
+        except Exception as e:
+            messagebox.showerror("Connection Failed", f"Could not connect to database:\n{e}")
+
+    tk.Button(login_frame, text="Connect", command=attempt_login).pack(pady=20)
+
+# Show login frame first
+show_login_frame()
+
 root.mainloop()
