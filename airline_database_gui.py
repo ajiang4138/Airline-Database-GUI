@@ -5,8 +5,6 @@ from tkinter import messagebox, ttk
 
 import pymysql
 
-from colors import COLORS
-
 # GUI setup
 
 root = tk.Tk()
@@ -1099,7 +1097,7 @@ def show_view(label_name, view_name):
     global views_frame
     views_frame.pack_forget()
     
-    precursor_frame = tk.Frame(root, bg=COLORS["background"])
+    precursor_frame = tk.Frame(root, bg= "#f9f9f9")
     precursor_frame.pack(pady=10)
     
     font = tkFont.Font()
@@ -1108,10 +1106,10 @@ def show_view(label_name, view_name):
         precursor_frame,
         text=label_name,
         font=("Helvetica", 20, "bold"),
-        bg=COLORS["background"]
+        bg="#f9f9f9"
     ).pack(pady=30)
     
-    data_frame = tk.Frame(precursor_frame, bg=COLORS["background"])
+    data_frame = tk.Frame(precursor_frame, bg= "#f9f9f9")
     data_frame.pack(pady=10)
     
     try:
