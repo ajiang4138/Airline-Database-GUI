@@ -485,6 +485,8 @@ def add_person_form(prev_frame, person_type):
                 
             finally:
                 conn.close()
+                
+        tk.Button(person_form_frame, text="Submit", command=submit).pack(pady=10)
         
         tk.Button(
             person_form_frame,
